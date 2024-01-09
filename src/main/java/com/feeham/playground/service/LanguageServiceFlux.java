@@ -9,11 +9,13 @@ import java.time.Duration;
 @Service
 public class LanguageServiceFlux {
     public Flux<String> getLanguages(){
-        return Flux.just("Java", "C", "C++", "Ruby", "Python", "C#", "Swift").delayElements(Duration.ofMillis(300));
+        return Flux.just("Java", "C", "C++", "Ruby", "Python", "C#", "Swift")
+                .log().delayElements(Duration.ofMillis(300)).log();
     }
 
     public Flux<String> getOS(){
-        return Flux.just("Windows", "Linux", "Android", "iOS").delayElements(Duration.ofSeconds(1));
+        return Flux.just("Windows", "Linux", "Android", "iOS")
+                .log().delayElements(Duration.ofSeconds(1)).log();
     }
 
     public Flux<String> fetchDataFromMultipleSources() {
@@ -24,10 +26,17 @@ public class LanguageServiceFlux {
                 .map(tuple -> {
                     // As the number of items doesn't match, the number of tuple will be
                     // min(collection1 size, collection2 size) by default.
-                    // However, this can be I mean should be able to changed.
+                    // However, this can be I mean should be able to change.
                     String resultFromSource1 = tuple.getT1();
                     String resultFromSource2 = tuple.getT2();
                     return resultFromSource1 + " and " + resultFromSource2;
                 });
     }
+
+    public Flux<String> getCFamilyLang() {
+        return getLanguages()
+                .filter(lang -> lang.startsWith("C"))
+                .map(String::toLowerCase);
+    }
+
 }

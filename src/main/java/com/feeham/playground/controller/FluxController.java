@@ -25,4 +25,9 @@ public class FluxController {
     public Flux<String> getLanguagesAndOS(){
         return languageServiceFlux.fetchDataFromMultipleSources();
     }
+
+    @GetMapping(value = "/c", produces = MediaType.APPLICATION_STREAM_JSON_VALUE)
+    public Flux<String> getCFamilyLanguages(){
+        return languageServiceFlux.getCFamilyLang();
+    }
 }
