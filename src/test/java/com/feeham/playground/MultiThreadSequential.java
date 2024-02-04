@@ -10,7 +10,7 @@ public class MultiThreadSequential {
     public void runMultipleThreads() throws InterruptedException {
         print("@Beginning of parent");
         for(int i = 1; i <= 3; i++){
-            prepareFood(i).subscribe();
+            prepareFood(i);
         }
         Thread.sleep(1000);
         print("@End of parent");

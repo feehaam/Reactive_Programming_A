@@ -10,7 +10,7 @@ public class MultiThreadChaotic {
     public void runMultipleThreads() throws InterruptedException {
         print("@Beginning of parent.");
         for(int i = 1; i < 4; i++){
-            fissionWave1(i).subscribe();
+            fissionWave1(i);
         }
         Thread.sleep(1000);
         print("@End of parent");
