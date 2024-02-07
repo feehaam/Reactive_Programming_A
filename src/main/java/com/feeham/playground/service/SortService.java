@@ -1,7 +1,6 @@
 package com.feeham.playground.service;
 
 import com.feeham.playground.models.Sort;
-import com.feeham.playground.models.SortResults;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -14,25 +13,14 @@ import java.util.Random;
 public class SortService {
     private final int ITEM_COUNT = 10000;
 
-    public Mono<SortResults> sort() {
-        SortResults results = new SortResults();
-        List<Mono<Sort>> sortMonos = new ArrayList<>();
-
-        for (int i = 0; i < 10; i++) {
-            sortMonos.add(getSortObject().flatMap(this::runSort));
-        }
-
-        Flux.merge(sortMonos)
-                .doOnNext(results.sortItems::add)
-                .doOnComplete(() -> calculateTotalTime(results))
-                .subscribe();
-
-        return Mono.just(results);
+    public Flux<Sort> sort() {
+        return Flux.range(1, 3)
+                .flatMap(item -> getSortObject()
+                        .flatMap(this::runSort));
     }
 
     private Mono<Sort> getSortObject() {
-        return Mono.just(
-                Sort.builder()
+        return Mono.just(Sort.builder()
                         .initTime(System.currentTimeMillis())
                         .totalItems(ITEM_COUNT)
                         .build()
@@ -41,14 +29,17 @@ public class SortService {
 
     private Mono<Sort> runSort(Sort sort) {
         sort.setStartTime(System.currentTimeMillis());
-        bubbleSort(getUnsortedItems());
-        sort.setThreadName(Thread.currentThread().getName());
-        sort.setEndTime(System.currentTimeMillis());
-        sort.setTotalTimeTaken(sort.getEndTime() - sort.getStartTime());
+        bubbleSort(getUnsortedItems()).flatMap(i -> {
+            sort.setThreadName(Thread.currentThread().getName());
+            sort.setEndTime(System.currentTimeMillis());
+            sort.setTotalTimeTaken(sort.getEndTime() - sort.getStartTime());
+            return Mono.empty();
+        });
+
         return Mono.just(sort);
     }
 
-    private void bubbleSort(List<Integer> items) {
+    private Mono<Void> bubbleSort(List<Integer> items) {
         int n = items.size();
         boolean swapped;
         do {
@@ -64,6 +55,7 @@ public class SortService {
             }
             n--;
         } while (swapped);
+        return Mono.empty();
     }
 
     private List<Integer> getUnsortedItems() {
@@ -75,8 +67,4 @@ public class SortService {
         return items;
     }
 
-    private void calculateTotalTime(SortResults results) {
-        results.sortItems.forEach(sort ->
-                sort.setTotalTimeTaken(sort.getEndTime() - sort.getStartTime()));
-    }
 }
