@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -17,5 +18,10 @@ public class UnifyingController {
     @GetMapping("/zip")
     public Mono<List<Integer>> getZipped() throws Exception {
         return unifyingService.getZipped();
+    }
+
+    @GetMapping("/merge")
+    public Flux<?> getMerged() throws Exception {
+        return unifyingService.getMerged();
     }
 }

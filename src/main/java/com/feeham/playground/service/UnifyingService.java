@@ -1,6 +1,7 @@
 package com.feeham.playground.service;
 
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -12,24 +13,11 @@ import java.util.Random;
 public class UnifyingService {
 
     /*
-    In case of zip, these are the outputs.
-    Observations: Calls are async, Data came asynchronously regardless of
-    call time, zipper returned final result after all data came.
-
-    Parsing data from source - 1.
-    Parsing data from source - 2.
-    Parsing data from source - 3.
-    Returning data from source - 3.
-    Returning data from source - 1.
-    Returning data from source - 2.
-    RETURNING ZIPPED DATA.
+     * In case of zip, calls are async, Data came asynchronously regardless of
+     * call time, zipper returned final result after all data came.
      */
     public Mono<List<Integer>> getZipped(){
-        return Mono.zip(
-                dataSource1(),
-                dataSource2(),
-                dataSource3(),
-                dataSource4()
+        return Mono.zip(dataSource1(), dataSource2(), dataSource3(), dataSource4()
         ).flatMap((data -> {
             List<Integer> result = new ArrayList<>(data.getT1());
             result.addAll(data.getT2());
@@ -41,6 +29,22 @@ public class UnifyingService {
             return Mono.just(List.of(0)); // Ignore the error and return an empty list
         });
 
+    }
+
+    /*
+     * In case of merge, calls are async, Data came asynchronously regardless of
+     * call time, returned an empty result initially and updated it whenever a response
+     * came.
+     */
+    public Flux<?> getMerged(){
+        return Flux.merge(dataSource1(), dataSource2(), dataSource3(), dataSource4())
+                .flatMap((data -> {
+                    System.out.println("RETURNING MERGED DATA.");
+                    return Mono.just(data);
+        })).onErrorResume(throwable -> {
+            System.err.println("Error occurred: " + throwable.getMessage());
+            return Mono.just(List.of(0));
+        });
     }
 
     private Mono<List<Integer>> dataSource1(){
