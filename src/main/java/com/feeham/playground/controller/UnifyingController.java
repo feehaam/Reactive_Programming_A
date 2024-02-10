@@ -24,4 +24,9 @@ public class UnifyingController {
     public Flux<?> getMerged() throws Exception {
         return unifyingService.getMerged();
     }
+
+    @GetMapping("/concat")
+    public Flux<?> concat() throws Exception {
+        return unifyingService.getConcat();
+    }
 }

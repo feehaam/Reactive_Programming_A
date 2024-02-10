@@ -41,10 +41,32 @@ public class UnifyingService {
                 .flatMap((data -> {
                     System.out.println("RETURNING MERGED DATA.");
                     return Mono.just(data);
-        })).onErrorResume(throwable -> {
-            System.err.println("Error occurred: " + throwable.getMessage());
-            return Mono.just(List.of(0));
-        });
+                })).onErrorResume(throwable -> {
+                    System.err.println("Error occurred: " + throwable.getMessage());
+                    return Mono.just(List.of(0));
+                });
+    }
+
+    /*
+     * In case of merge, calls are async, Data came asynchronously regardless of
+     * call time, returned an empty result initially and updated it whenever a response
+     * came.
+     */
+    public Flux<?> getConcat(){
+        /*
+        return Flux.concat(dataSource1(), dataSource2(), dataSource3(), dataSource4())
+                .flatMap((data -> {
+                    System.out.println("RETURNING CONCAT DATA.");
+                    return Mono.just(data);
+                })).onErrorResume(throwable -> {
+                    System.err.println("Error occurred: " + throwable.getMessage());
+                    return Mono.just(List.of(0));
+                });
+         */
+
+        return dataSource2()
+                .concatWith(dataSource3()
+                        .concatWith(dataSource1()));
     }
 
     private Mono<List<Integer>> dataSource1(){
