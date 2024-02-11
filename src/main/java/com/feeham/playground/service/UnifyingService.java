@@ -48,9 +48,8 @@ public class UnifyingService {
     }
 
     /*
-     * In case of merge, calls are async, Data came asynchronously regardless of
-     * call time, returned an empty result initially and updated it whenever a response
-     * came.
+     * In case of concat, calls are async, Data came synchronously based on
+     * call time, worked like a chain.
      */
     public Flux<?> getConcat(){
         /*
