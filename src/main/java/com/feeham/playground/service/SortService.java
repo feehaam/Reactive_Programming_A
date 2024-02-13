@@ -16,33 +16,27 @@ public class SortService {
 
     public Mono<List<Sort>> selection() {
         List<Sort> results = new ArrayList<>();
-        for(int i=0; i<sortCount; i++){
+        for (int i = 0; i < sortCount; i++) {
             Sort sort = new Sort();
             sort.setSi(i);
             results.add(sort);
         }
-//        return Flux.fromIterable(results).flatMap(this::runSelectionSort).collectList();
-        Flux<Sort> sortedLists = Flux.fromIterable(results).flatMap(this::runSelectionSort);
 
-        // Use the zip method to combine the results into a single Flux
-        Flux<List<Integer>> zippedResult = Flux(sortedLists, (Object[] arrays) -> {
-            List<Integer> mergedList = new ArrayList<>();
-            for (Object array : arrays) {
-                mergedList.addAll((List<Integer>) array);
-            }
-            return mergedList;
-        });
+        // Create a Flux from the results list and apply runSelectionSort asynchronously
+        return Flux.fromIterable(results)
+                .flatMap(this::runSelectionSort)
+                .collectList();
     }
 
-    private Mono<Sort> runSelectionSort(Sort sort){
+    private Mono<Sort> runSelectionSort(Sort sort) {
         List<Integer> list = getNumbers(sort.getSi());
         int index = 0;
         sort.setStartTime(System.currentTimeMillis());
         print(sort.getSi(), "Sorting started.");
         List<Integer> sorted = new ArrayList<>();
-        while(!list.isEmpty()){
-            for(int i=0; i<list.size(); i++) {
-                if(list.get(i) < list.get(index)) {
+        while (!list.isEmpty()) {
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i) < list.get(index)) {
                     index = i;
                 }
             }
@@ -57,17 +51,18 @@ public class SortService {
     }
 
     private final Random random = new Random();
-    private List<Integer> getNumbers(int si){
-        print(si,"Setting unsorted numbers array.");
+
+    private List<Integer> getNumbers(int si) {
+        print(si, "Setting unsorted numbers array.");
         List<Integer> unsortedNumbers = new ArrayList<>();
-        for(int i=0; i<itemCount; i++) {
+        for (int i = 0; i < itemCount; i++) {
             unsortedNumbers.add(random.nextInt(99999));
         }
         print(si, "Returning unsorted numbers.");
         return unsortedNumbers;
     }
 
-    private void print(int si, String text){
+    private void print(int si, String text) {
         System.out.println(si + ". " + text);
     }
 }
