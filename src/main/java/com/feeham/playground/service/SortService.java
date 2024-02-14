@@ -4,6 +4,7 @@ import com.feeham.playground.model.Sort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,28 +15,36 @@ public class SortService {
     private final int itemCount = 40000;
     private final int sortCount = 10;
 
-    public Mono<List<Sort>> selection() {
-        List<Sort> results = new ArrayList<>();
+    public Flux<Sort> selection() {
+        List<Mono<Sort>> sortMonos = new ArrayList<>();
         for (int i = 0; i < sortCount; i++) {
             Sort sort = new Sort();
             sort.setSi(i);
-            results.add(sort);
+            sortMonos.add(runSelectionSort(sort).subscribeOn(Schedulers.parallel()));
         }
-
-        // Create a Flux from the results list and apply runSelectionSort asynchronously
-        return Flux.fromIterable(results)
-                .flatMap(this::runSelectionSort)
-                .collectList();
+        return Flux.merge(sortMonos);
     }
 
     private Mono<Sort> runSelectionSort(Sort sort) {
-        List<Integer> list = getNumbers(sort.getSi());
-        int index = 0;
+        return Mono.fromCallable(() -> {
+            List<Integer> list = getNumbers(sort.getSi());
+            preProcess(sort);
+            sort.setIterations(sort(list));
+            postProcess(sort);
+            return sort;
+        }).subscribeOn(Schedulers.parallel());
+    }
+
+    private void preProcess(Sort sort){
         sort.setStartTime(System.currentTimeMillis());
         print(sort.getSi(), "Sorting started.");
+    }
+
+    private long sort(List<Integer> list){
+        int index = 0, iterations = 0;
         List<Integer> sorted = new ArrayList<>();
         while (!list.isEmpty()) {
-            for (int i = 0; i < list.size(); i++) {
+            for (int i = 0; i < list.size(); i++, iterations++) {
                 if (list.get(i) < list.get(index)) {
                     index = i;
                 }
@@ -44,10 +53,13 @@ public class SortService {
             list.remove(index);
             index = 0;
         }
+        return iterations;
+    }
+
+    private void postProcess(Sort sort){
         sort.setEndTime(System.currentTimeMillis());
         sort.setProcessTime(sort.getEndTime() - sort.getStartTime());
         print(sort.getSi(), "Sorting completed, returning data.");
-        return Mono.just(sort);
     }
 
     private final Random random = new Random();
