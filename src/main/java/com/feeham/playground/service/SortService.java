@@ -75,6 +75,6 @@ public class SortService {
     }
 
     private void print(int si, String text) {
-        System.out.println(si + ". " + text);
+        System.out.println(si + ". " + text + " @" + Thread.currentThread().getName());
     }
 }
